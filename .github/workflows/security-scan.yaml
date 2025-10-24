@@ -1,0 +1,87 @@
+name: Day3 Security Scan
+
+on:
+  push:
+    paths:
+      - 'security-compliance-workshop/day3/**'
+  pull_request:
+    paths:
+      - 'security-compliance-workshop/day3/**'
+
+jobs:
+  static-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install scanning tools
+        run: |
+          pip install --upgrade pip
+          pip install bandit semgrep
+
+      - name: Run Bandit
+        run: |
+          mkdir -p reports
+          bandit -r security-compliance-workshop/day3 -f html -o reports/bandit-report.html || true
+
+      - name: Run Semgrep
+        run: |
+          mkdir -p reports
+          semgrep --config=auto security-compliance-workshop/day3 --json --output reports/semgrep-report.json || true
+
+      - name: Install Gitleaks
+        run: |
+          curl -sSL https://github.com/zricethezav/gitleaks/releases/download/v8.16.0/gitleaks_8.16.0_linux_x64.tar.gz | tar xz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks
+        run: |
+          mkdir -p reports
+          gitleaks detect --source=. --report-path=reports/gitleaks-report.json || true
+
+      - name: Upload static scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-scan-reports
+          path: reports/
+
+  docker-zap-scan:
+    runs-on: ubuntu-latest
+    needs: static-scan
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker container
+        run: |
+          docker build -t day3-flask security-compliance-workshop/day3
+
+      - name: Start Flask container
+        run: |
+          docker run -d -p 5001:5000 --name flask-test day3-flask
+          for i in {1..15}; do curl -s http://localhost:5001 && break || sleep 1; done
+
+      - name: Run ZAP full scan
+        uses: zaproxy/action-full-scan@v0.12.0
+        with:
+          target: 'http://host.docker.internal:5001'
+          fail_action: false
+          artifact_name: 'zap-report'
+
+      - name: Upload ZAP reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: zapscan
+          path: |
+            report_html.html
+            report_md.md
+            report_json.json
+
+      - name: Stop Flask container
+        run: docker stop flask-test

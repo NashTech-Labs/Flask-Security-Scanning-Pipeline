@@ -1,0 +1,19 @@
+{
+	"@programName": "ZAP",
+	"@version": "2.16.1",
+	"@generated": "Tue, 30 Sept 2025 06:40:39",
+	"created": "2025-09-30T06:40:39.735298259Z",
+	"site":[ 
+		{
+			"@name": "http://host.docker.internal:5001",
+			"@host": "host.docker.internal",
+			"@port": "5001",
+			"@ssl": "false",
+			"alerts": [ 
+			]
+		}
+	],
+	"sequences":[
+	]
+
+}
