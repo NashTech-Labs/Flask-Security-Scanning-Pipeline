@@ -64,10 +64,17 @@ During the scans, the following vulnerabilities/secrets were identified:
 ## Running the Application Locally
 
                git clone <repo-url>
-               cd security-compliance-workshop/day3
+               cd <your-repo-folder>
                docker build -t day3-flask .
                docker run -d -p 5001:5000 --env-file .env day3-flask 
                curl http://127.0.0.1:5001/
                curl "http://127.0.0.1:5001/calc?expr=5*10"
 
+**- Update the File Path (Important)**
 
+     In the GitHub Actions workflow file (e.g., .github/workflows/security-scan.yml),
+              
+
+**- 4. View the Reports**
+
+   Go to GitHub Actions → Security Scan Workflow → Artifacts
