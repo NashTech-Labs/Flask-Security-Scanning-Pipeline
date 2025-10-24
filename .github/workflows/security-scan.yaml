@@ -1,12 +1,12 @@
-name: Day3 Security Scan
+name: Security Scan
 
 on:
   push:
     paths:
-      - 'security-compliance-workshop/day3/**'
+     - 'app.py'
   pull_request:
     paths:
-      - 'security-compliance-workshop/day3/**'
+      - 'app.py'
 
 jobs:
   static-scan:
